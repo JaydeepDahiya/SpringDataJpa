@@ -3,11 +3,12 @@ package guru.springframework.jdbc;
 import guru.springframework.jdbc.dao.AuthorDao;
 import guru.springframework.jdbc.dao.AuthorDaoImpl;
 import guru.springframework.jdbc.domain.Author;
+import guru.springframework.jdbc.repositories.BookRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,15 +16,9 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Created by jt on 8/28/21.
- */
-@ActiveProfiles("local")
 @DataJpaTest
-@ComponentScan(basePackages = {"guru.springframework.jdbc.dao"})
-@Import({AuthorDaoImpl.class})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class DaoIntegrationTest {
+@Import({AuthorDaoImpl.class})//, BookDaoImpl.class})
+public abstract class DaoIntegrationTest {
     @Autowired
     AuthorDao authorDao;
 
@@ -151,4 +146,22 @@ public class DaoIntegrationTest {
         assertThat(author).isNotNull();
 
     }
+}
+
+class H2Test extends DaoIntegrationTest {
+}
+
+@ActiveProfiles("local")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class MySQLIntegrationTest extends DaoIntegrationTest {
+
+    @Autowired
+    BookRepository bookRepository;
+
+    @Test
+    void testMySQL() {
+        long countBefore = bookRepository.count();
+        Assertions.assertThat(countBefore).isGreaterThan(0);
+    }
+
 }
